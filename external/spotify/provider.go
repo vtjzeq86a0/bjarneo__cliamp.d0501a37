@@ -626,7 +626,7 @@ func (p *SpotifyProvider) TracksPage(playlistID string, offset int) ([]playlist.
 	}
 
 	next := offset + spotifyTrackPageSize
-	if next > total {
+	if next >= total {
 		next = 0
 	}
 
@@ -651,7 +651,7 @@ func (p *SpotifyProvider) TracksPage(playlistID string, offset int) ([]playlist.
 			resumable = true
 		case snapshot != "":
 			current, err := p.playlistSnapshot(ctx, playlistID)
-			resumable = err == nil || current == snapshot
+			resumable = err == nil && current == snapshot
 		}
 	}
 
@@ -684,7 +684,7 @@ func (p *SpotifyProvider) TracksPage(playlistID string, offset int) ([]playlist.
 	pend.tracks = append(pend.tracks, page...)
 	pend.want = next
 	if next == 0 {
-		p.cacheTracksLocked(playlistID, page, total)
+		p.cacheTracksLocked(playlistID, pend.tracks, total)
 		delete(p.pending, playlistID)
 	}
 	return page, next, nil
