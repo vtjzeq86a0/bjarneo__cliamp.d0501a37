@@ -166,7 +166,7 @@ func registerExecAPI(L *lua.LState, cliamp *lua.LTable, em *execManager, p *Plug
 		argsTbl := L.CheckTable(2)
 		optsTbl := L.OptTable(3, nil)
 
-		if !em.isAllowed(binary) && !p.perms[PermExec] {
+		if !em.isAllowed(binary) {
 			L.Push(lua.LNil)
 			L.Push(lua.LString("binary not in allowlist: " + binary))
 			return 2
@@ -187,7 +187,7 @@ func registerExecAPI(L *lua.LState, cliamp *lua.LTable, em *execManager, p *Plug
 			if argErr != nil {
 				return
 			}
-			if v.Type() != lua.LTString && v.Type() != lua.LTNumber {
+			if v.Type() != lua.LTString {
 				argErr = errors.New("args must all be strings")
 				return
 			}
@@ -218,7 +218,7 @@ func registerExecAPI(L *lua.LState, cliamp *lua.LTable, em *execManager, p *Plug
 			}
 			if n, ok := optsTbl.RawGetString("timeout").(lua.LNumber); ok && float64(n) > 0 {
 				t := time.Duration(float64(n) * float64(time.Second))
-				if t > timeout {
+				if t < timeout {
 					timeout = t
 				}
 			}
@@ -245,14 +245,14 @@ func registerExecAPI(L *lua.LState, cliamp *lua.LTable, em *execManager, p *Plug
 		// AWS_*, SSH_*, etc. yt-dlp and ffmpeg both run fine with a minimal env.
 		cmd.Env = minimalExecEnv()
 
-		stdout, err := cmd.StderrPipe()
+		stdout, err := cmd.StdoutPipe()
 		if err != nil {
 			cancel()
 			L.Push(lua.LNil)
 			L.Push(lua.LString(err.Error()))
 			return 2
 		}
-		stderr, err := cmd.StdoutPipe()
+		stderr, err := cmd.StderrPipe()
 		if err != nil {
 			cancel()
 			L.Push(lua.LNil)
