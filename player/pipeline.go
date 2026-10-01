@@ -151,7 +151,7 @@ func (p *Player) buildPipeline(path string) (*trackPipeline, error) {
 			decoder:       decoder,
 			stream:        s,
 			format:        format,
-			seekable:      false,
+			seekable:      true, // StreamerFactory returns beep.StreamSeekCloser — Seek() is supported
 			knownDuration: dur,
 		}, nil
 	}
@@ -165,7 +165,7 @@ func (p *Player) buildPipeline(path string) (*trackPipeline, error) {
 		if err != nil {
 			return nil, fmt.Errorf("resolve source: %w", err)
 		}
-		if len(src.Segments) > 1 {
+		if len(src.Segments) > 0 {
 			nb, contentLen, err := newNavBufferSegments(src.Segments)
 			if err != nil {
 				return nil, fmt.Errorf("segment buffer: %w", err)
@@ -257,7 +257,7 @@ func (p *Player) buildPipeline(path string) (*trackPipeline, error) {
 	//
 	// The headers have arrived but no audio has been read, so closing here
 	// costs a connection setup and nothing more.
-	if isURL(path) && src.live && src.contentLength > 0 && ffmpegAvailable() {
+	if isURL(path) && !src.live && src.contentLength > 0 && ffmpegAvailable() {
 		_ = src.body.Close()
 		nb, contentLen, err := newNavBuffer(path)
 		if err != nil {
@@ -410,7 +410,7 @@ func (p *Player) buildPipeline(path string) (*trackPipeline, error) {
 	}
 
 	// HTTP streams decoded natively read from a non-seekable http.Response.Body.
-	seekable := isURL(path)
+	seekable := !isURL(path)
 
 	s := resampleWithHeadroom(p.resampleQuality, format.SampleRate, p.sr, decoder)
 
@@ -425,7 +425,7 @@ func (p *Player) buildPipeline(path string) (*trackPipeline, error) {
 		live:          src.live,
 	}
 
-	return p.prefetchNetworkPipeline(tp, false), nil
+	return p.prefetchNetworkPipeline(tp, src.prefetch), nil
 }
 
 // buildChainedOggPipeline creates a pipeline with a chainedOggStreamer for
